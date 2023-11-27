@@ -39,15 +39,19 @@ if abspath(PROGRAM_FILE) == @__FILE__
 
     suite = BenchmarkGroup()
 
-    suite["cpu"] = BenchmarkGroup()
-    for T in cpu_types, size in sizes
-        suite["cpu"][T, size] = @benchmarkable A * B setup=((A, B) = gemm_init($T, $size, CPU()))
+    for T in cpu_types
+        suite["cpu", T] = BenchmarkGroup()
+        for size in sizes
+            suite["cpu", T][size] = @benchmarkable A * B setup=((A, B) = gemm_init($T, $size, CPU()))
+        end
     end
 
     for mode in [CUDA.DEFAULT_MATH, CUDA.FAST_MATH]
-        suite["gpu", string(mode)] = BenchmarkGroup()
-        for T in [BFloat16, Float16, Float32, Float64], size in sizes
-            suite["gpu", string(mode)][T, size] = @benchmarkable (CUDA.@sync A * B) setup=((A, B) = gemm_init($T, $size, GPU()); CUDA.math_mode!($mode))
+        for T in [BFloat16, Float16, Float32, Float64]
+            suite["gpu", mode, T] = BenchmarkGroup()
+            for size in sizes
+                suite["gpu", mode, T][size] = @benchmarkable (CUDA.@sync A * B) setup=((A, B) = gemm_init($T, $size, GPU()); CUDA.math_mode!($mode))
+            end
         end
     end
 
