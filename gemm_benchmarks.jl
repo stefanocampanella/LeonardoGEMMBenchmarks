@@ -22,7 +22,7 @@ abstract type Device end
 struct CPU <: Device end
 struct GPU <: Device end
 
-function rand(dev::Device, args...)
+function Base.rand(dev::Device, args...)
     if dev isa CPU
         rand(args...)
     elseif dev isa GPU 
