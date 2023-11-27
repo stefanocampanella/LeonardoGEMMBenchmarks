@@ -42,7 +42,7 @@ dgemm_plot = let
 	benchmarksplot!(plt, ("gpu", "DEFAULT_MATH", T), color=:red, label="GPU")
 	benchmarksplot!(plt, ("cpu", T), color=:blue, label="CPU")
 	plot!(plt, legend=:bottomright)
-	plot!(size=(640, 480))
+	plot!(dpi=300, size=(640, 480))
 end
 
 # ╔═╡ 3014c3b9-3c8d-433f-8158-cd62b4e20542
