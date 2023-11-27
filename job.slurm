@@ -16,4 +16,4 @@ SIZES=()
 for N in $(seq $2 $3); do
     SIZES+=($((1 << $N)))
 done
-julia gemm_benchmarks.jl "${OUTPUT}" "${SIZES}"
+julia gemm_benchmarks.jl "${OUTPUT}" "${SIZES[@]}"
