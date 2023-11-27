@@ -13,8 +13,7 @@ module load cuda intel-oneapi-mkl
 
 OUTPUT=$1
 SIZES=()
-for N in seq $2 $3
-    SIZES+=$((1 << $N))
-end
-
+for N in $(seq $2 $3); do
+    SIZES+=($((1 << $N)))
+done
 julia gemm_benchmarks.jl "${OUTPUT}" "${SIZES}"
