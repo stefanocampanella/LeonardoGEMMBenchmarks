@@ -35,7 +35,7 @@ gemm_init(T, size, device) = random_matrix(T, size, device), random_matrix(T, si
 
 if abspath(PROGRAM_FILE) == @__FILE__
     const filename = ARGS[1]
-    const sizes = map(s -> parse(Int, s), split(ARGS[2]))
+    const sizes = map(s -> parse(Int, s), ARGS[2:end])
 
     suite = BenchmarkGroup()
 
