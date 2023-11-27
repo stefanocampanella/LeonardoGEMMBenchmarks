@@ -2,7 +2,7 @@
 #SBATCH --job-name=GEMM_BENCHMARKS
 #SBATCH --account=OGS23_PRACE_IT_0
 #SBATCH --partition=boost_usr_prod
-#SBATCH --time=2:00:00
+#SBATCH --time=1:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=32
 #SBATCH --cpus-per-task=1
@@ -11,10 +11,10 @@
 
 module load cuda intel-oneapi-mkl
 
-OUTPUT="gemm_benchmarks.jld2"
+OUTPUT=$1
 SIZES=()
-for n in seq $1 $2
-    SIZES+=$((2 ** n))
+for N in seq $2 $3
+    SIZES+=$((1 << $N))
 end
 
 julia gemm_benchmarks.jl "${OUTPUT}" "${SIZES}"
