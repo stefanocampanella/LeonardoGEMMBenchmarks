@@ -13,11 +13,25 @@ using JLD2
 # ╔═╡ bb278ac6-e29d-4e67-b356-d91973565b2b
 using BenchmarkTools
 
+# ╔═╡ 77c81734-01d0-468f-b243-fa9ae09efcc4
+using BFloat16s
+
 # ╔═╡ e83fbfd7-b611-4162-9db4-9fe5cd4278aa
 @load "gemm_benchmarks.jld2" results
 
 # ╔═╡ 3e8091fe-44b2-4d4d-9fac-ea06b916ee77
 results
+
+# ╔═╡ afebd1e0-021e-40b0-a7c8-d2ed96f171c1
+peak_perfs = let
+	peak_perfs = Dict{String, Tuple{Float64, Int}}()
+	for key in keys(results)
+		times = Dict(size => minimum(trial).time for (size, trial) in results[key])
+		perfs = Dict(size => 2size^3 / time for (size, time) in times)
+		peak_perfs[join(key, " ")] = findmax(perfs)
+	end
+	peak_perfs
+end
 
 # ╔═╡ 3b5c07d7-e027-4fa5-8364-1d9e04471d5f
 function get_flops(key)
@@ -39,7 +53,7 @@ end
 dgemm_plot = let
 	T = Float64
 	plt = plot(title="DGEMM benchmarks")
-	benchmarksplot!(plt, ("gpu", "DEFAULT_MATH", T), color=:red, label="GPU")
+	benchmarksplot!(plt, ("gpu", T), color=:red, label="GPU")
 	benchmarksplot!(plt, ("cpu", T), color=:blue, label="CPU")
 	plot!(plt, legend=:bottomright)
 	plot!(dpi=300, size=(640, 480))
@@ -51,9 +65,9 @@ savefig(dgemm_plot, "dgemm.png")
 # ╔═╡ b111c4df-fb9a-49de-a293-b812dcdd228f
 gpugemm_plot = let
 	plt = plot(title="GPU GEMM")
-	benchmarksplot!(plt, ("gpu", "DEFAULT_MATH", Float32), color=:blue, label="Float32")
-	benchmarksplot!(plt, ("gpu", "FAST_MATH", Float32), color=:red, label="Float32 (TensorFloat)")
-	benchmarksplot!(plt, ("gpu", "DEFAULT_MATH", Float16), color=:green, label="Float16")
+	benchmarksplot!(plt, ("gpu", Float32), color=:blue, label="Float32")
+	benchmarksplot!(plt, ("gpu", "TFloat32"), color=:red, label="Float32 (TensorFloat)")
+	benchmarksplot!(plt, ("gpu", Float16), color=:green, label="Float16")
 	plot!(plt, yticks=[10^n for n = 0:5])
 	plot!(plt, legend=:bottomright)
 	plot!(dpi=300, size=(640, 480))
@@ -65,11 +79,13 @@ savefig(gpugemm_plot, "gpugemm.png")
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
 [deps]
+BFloat16s = "ab4f0b2a-ad5b-11e8-123f-65d77653426b"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 JLD2 = "033835bb-8acc-5ee8-8aae-3f567f8a3819"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 
 [compat]
+BFloat16s = "~0.4.2"
 BenchmarkTools = "~1.3.2"
 JLD2 = "~0.4.38"
 Plots = "~1.39.0"
@@ -81,7 +97,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.9.4"
 manifest_format = "2.0"
-project_hash = "705a1ca47de939789e29b1b425d43a9b21bb1326"
+project_hash = "a8eac3ca78f24f9deeac6aa84f90725f49982b90"
 
 [[deps.ArgTools]]
 uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
@@ -89,6 +105,12 @@ version = "1.1.1"
 
 [[deps.Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
+
+[[deps.BFloat16s]]
+deps = ["LinearAlgebra", "Printf", "Random", "Test"]
+git-tree-sha1 = "dbf84058d0a8cbbadee18d25cf606934b22d7c66"
+uuid = "ab4f0b2a-ad5b-11e8-123f-65d77653426b"
+version = "0.4.2"
 
 [[deps.Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -1149,8 +1171,10 @@ version = "1.4.1+1"
 # ╠═3fd020a6-8789-11ee-36d3-ff26cdf24219
 # ╠═2f4bc753-6146-4675-8b3a-8c62ff131fa8
 # ╠═bb278ac6-e29d-4e67-b356-d91973565b2b
+# ╠═77c81734-01d0-468f-b243-fa9ae09efcc4
 # ╠═e83fbfd7-b611-4162-9db4-9fe5cd4278aa
 # ╠═3e8091fe-44b2-4d4d-9fac-ea06b916ee77
+# ╠═afebd1e0-021e-40b0-a7c8-d2ed96f171c1
 # ╠═3b5c07d7-e027-4fa5-8364-1d9e04471d5f
 # ╠═b4b3e949-754d-404b-8b0f-0c64c274b1af
 # ╠═ef249cd0-cf20-4253-a1a3-e73909f3ff64

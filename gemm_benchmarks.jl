@@ -14,13 +14,14 @@ versioninfo()
 @info "BLAS num threads" BLAS.get_num_threads()
 @info "CUDA version info" CUDA.versioninfo()
 
-const cpu_types = [Float32, Float64]
-const gpu_types = [BFloat16, Float16, Float32, Float64]
-const gpu_modes = [CUDA.DEFAULT_MATH, CUDA.FAST_MATH]
-
 abstract type Device end
 struct CPU <: Device end
 struct GPU <: Device end
+
+struct TFloat32 end
+
+const cpu_types = [Float32, Float64]
+const gpu_types = [BFloat16, Float16, Float32, TFloat32, Float64]
 
 function Base.rand(dev::Device, args...)
     if dev isa CPU
@@ -46,12 +47,17 @@ if abspath(PROGRAM_FILE) == @__FILE__
         end
     end
 
-    for mode in [CUDA.DEFAULT_MATH, CUDA.FAST_MATH]
-        for T in [BFloat16, Float16, Float32, Float64]
-            suite["gpu", mode, T] = BenchmarkGroup()
-            for size in sizes
-                suite["gpu", mode, T][size] = @benchmarkable (CUDA.@sync A * B) setup=((A, B) = gemm_init($T, $size, GPU()); CUDA.math_mode!($mode))
-            end
+    for T in gpu_types
+        suite["gpu", T] = BenchmarkGroup()
+        if T == TFloat32
+            mode = CUDA.FAST_MATH
+            eltype = Float32
+        else
+            mode = CUDA.DEFAULT_MATH
+            eltype = T
+        end
+        for size in sizes
+            suite["gpu", T][size] = @benchmarkable (CUDA.@sync A * B) setup=((A, B) = gemm_init($eltype, $size, GPU()); CUDA.math_mode!($mode))
         end
     end
 
